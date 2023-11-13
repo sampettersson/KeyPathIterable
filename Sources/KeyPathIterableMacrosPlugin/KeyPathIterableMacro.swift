@@ -26,7 +26,7 @@ public struct KeyPathIterableMacro: MemberMacro {
             .compactMap { $0.decl.as(VariableDeclSyntax.self)}
             .filter {
                 if decl.is(ActorDeclSyntax.self) {
-                    return $0.modifiers?.contains { $0.name.text == "nonisolated" } ?? false
+                    return $0.modifiers.contains { $0.name.text == "nonisolated" }
                 } else {
                     return true
                 }
@@ -44,20 +44,21 @@ public struct KeyPathIterableMacro: MemberMacro {
     }
 }
 
-extension KeyPathIterableMacro: ConformanceMacro {
-    public static func expansion<Declaration, Context>(of node: AttributeSyntax, providingConformancesOf declaration: Declaration, in context: Context) throws -> [(TypeSyntax, GenericWhereClauseSyntax?)] where Declaration : DeclGroupSyntax, Context : MacroExpansionContext {
-        guard let declaration = decodeExpansion(of: node, attachedTo: declaration, in: context) else {
-            return []
-        }
-
-        if let inheritedTypes = declaration.inheritanceClause?.inheritedTypeCollection,
-           inheritedTypes.contains(where: { inherited in inherited.typeName.trimmedDescription == "KeyPathIterable" })
-        {
-            return []
-        }
-
-        return [("KeyPathIterable", nil)]
+extension KeyPathIterableMacro: ExtensionMacro {
+  public static func expansion(of node: SwiftSyntax.AttributeSyntax, attachedTo declaration: some SwiftSyntax.DeclGroupSyntax, providingExtensionsOf type: some SwiftSyntax.TypeSyntaxProtocol, conformingTo protocols: [SwiftSyntax.TypeSyntax], in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.ExtensionDeclSyntax] {
+    guard let declaration = decodeExpansion(of: node, attachedTo: declaration, in: context) else {
+        return []
     }
+
+    if let inheritedTypes = declaration.inheritanceClause?.inheritedTypes,
+       inheritedTypes.contains(where: { inherited in inherited.type.trimmedDescription == "KeyPathIterable" })
+    {
+        return []
+    }
+
+    return [try ExtensionDeclSyntax("extension \(type.trimmed): KeyPathIterable {}")]
+
+  }
 }
 
 public extension KeyPathIterableMacro {

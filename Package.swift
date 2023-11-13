@@ -7,9 +7,9 @@ import CompilerPluginSupport
 let package = Package(
     name: "KeyPathIterable",
     platforms: [
-        .iOS(.v11),
+        .iOS(.v13),
         .macOS(.v10_15),
-        .tvOS(.v11),
+        .tvOS(.v13),
         .watchOS(.v4)
     ],
     products: [
