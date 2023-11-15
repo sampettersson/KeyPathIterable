@@ -16,11 +16,20 @@ public struct KeyPathIterableMacro: MemberMacro {
         providingMembersOf declaration: Declaration,
         in context: Context
     ) throws -> [DeclSyntax] {
+
         guard let decl = decodeExpansion(of: node, attachedTo: declaration, in: context) else {
             return []
         }
 
         let namespace = decl.identifier.text
+
+      declaration.memberBlock.members.forEach { member in
+        if let attributes = member.decl.as(VariableDeclSyntax.self)?.attributes {
+          let attributes = attributes.compactMap { $0.as(AttributeSyntax.self) }
+
+          print(attributes)
+        }
+      }
 
         let keyPaths = declaration.memberBlock.members
             .compactMap { $0.decl.as(VariableDeclSyntax.self)}
@@ -31,7 +40,20 @@ public struct KeyPathIterableMacro: MemberMacro {
                     return true
                 }
             }
-            .compactMap(\.variableName)
+            .flatMap { node -> [String] in
+              let attributes = node.attributes.compactMap { $0.as(AttributeSyntax.self) }
+
+              if let variableName = node.variableName {
+                if !attributes.isEmpty {
+                  return ["$\(variableName)", variableName]
+                }
+
+                return [variableName]
+              }
+
+              return []
+            }
+            .compactMap { $0 }
             .map { "\\.\($0)" }
             .joined(separator: ", ")
 
