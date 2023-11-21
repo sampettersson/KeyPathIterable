@@ -1,7 +1,7 @@
 import SwiftSyntax
 
 public protocol NamespaceSyntax: SyntaxProtocol {
-  var inheritanceClause: InheritanceClauseSyntax?  { get set }
+  var inheritanceClause: InheritanceClauseSyntax? { get set }
   var identifier: TokenSyntax { get set }
 }
 
