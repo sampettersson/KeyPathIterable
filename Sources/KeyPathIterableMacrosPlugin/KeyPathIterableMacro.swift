@@ -31,6 +31,8 @@ extension MemberBlockItemListSyntax {
         $0.as(
           AttributeSyntax.self
         )
+      }.filter { attribute in
+        !attribute.attributeName.description.contains("_")
       }
 
       if let variableName = node.variableName {
@@ -83,11 +85,11 @@ public struct KeyPathIterableMacro: MemberMacro {
     let keyPaths = declaration.memberBlock.members
       .keyPaths(decl: decl)
 
-    let codeBlockItemList = try VariableDeclSyntax(
-      "static var allKeyPaths: [PartialKeyPath<\(raw: namespace)>]"
+    let codeBlockItemList = try FunctionDeclSyntax(
+      "static prefix func /(_ self: \(raw: namespace).Type) -> [PartialKeyPath<\(raw: namespace)>]"
     ) {
       StmtSyntax(
-        "[\(raw: keyPaths)] + additionalKeyPaths"
+        "[\(raw: keyPaths)]"
       )
     }
     .formatted()
@@ -105,7 +107,7 @@ extension KeyPathIterableMacro: ExtensionMacro {
     in context: some SwiftSyntaxMacros.MacroExpansionContext
   ) throws -> [SwiftSyntax.ExtensionDeclSyntax] {
     guard
-      let declaration = decodeExpansion(
+      let decl = decodeExpansion(
         of: node,
         attachedTo: declaration,
         in: context
@@ -116,14 +118,19 @@ extension KeyPathIterableMacro: ExtensionMacro {
 
     if let inheritedTypes = declaration.inheritanceClause?.inheritedTypes,
       inheritedTypes.contains(where: { inherited in
-        inherited.type.trimmedDescription == "KeyPathIterable"
-      }) {
+        inherited.type.trimmedDescription == "_KeyPathIterable"
+      })
+    {
       return []
     }
 
     return [
       try ExtensionDeclSyntax(
-        "extension \(type.trimmed): KeyPathIterable {}"
+        """
+        extension \(type.trimmed): _KeyPathIterable {
+          
+        }
+        """
       )
     ]
 

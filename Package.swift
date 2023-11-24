@@ -12,7 +12,11 @@ let package = Package(
     .library(
       name: "KeyPathIterable",
       targets: ["KeyPathIterable"]
-    )
+    ),
+    .library(
+      name: "KeyPathIterableAccessor",
+      targets: ["KeyPathIterableAccessor"]
+    ),
   ],
   dependencies: [
     .package(url: "https://github.com/apple/swift-syntax.git", from: "509.0.2")
@@ -26,6 +30,12 @@ let package = Package(
         "KeyPathIterableMacrosPlugin"
       ]
     ),
+    .target(
+      name: "KeyPathIterableAccessor",
+      dependencies: [
+        "KeyPathIterable"
+      ]
+    ),
     .macro(
       name: "KeyPathIterableMacrosPlugin",
       dependencies: [
@@ -37,6 +47,7 @@ let package = Package(
       name: "KeyPathIterableTests",
       dependencies: [
         "KeyPathIterable",
+        "KeyPathIterableAccessor",
         .product(name: "SwiftSyntaxMacrosTestSupport", package: "swift-syntax"),
       ]
     ),
